@@ -10,14 +10,7 @@ class Products extends Component {
         brand: [],
         processor: []
       },
-      brands: [
-        {_id: 1, name: 'Asus'},
-        {_id: 2, name: 'Dell'},
-        {_id: 3, name: 'Apple'},
-        {_id: 4, name: 'Lenovo'},
-        {_id: 5, name: 'Sony Vio'},
-        {_id: 6, name: 'HP'},
-      ],
+      brands: [],
       processors: []
     }
   };
@@ -28,15 +21,17 @@ class Products extends Component {
     this.setState({filters: newFilters});
   };
 
-  componentDidMount() {
-    axios.get('http://localhost:8000/api/processors')
-      .then(response => {
-        const processors = response.data;
-        this.setState({
-          products: {...this.state.products, processors}
-        });
-      })
-      .catch(err => console.log(err));
+  async componentDidMount() {
+    const processorsPromise = axios.get('http://localhost:8000/api/processors');
+    const brandsPromise = axios.get('http://localhost:8000/api/brands');
+    const [processorsRes, brandsRes] = await Promise.all([processorsPromise, brandsPromise]);
+    this.setState({
+      products: {
+        ...this.state.products,
+        brands: brandsRes.data,
+        processors: processorsRes.data
+      }
+    });
   }
 
   render() {
