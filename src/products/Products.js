@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import axios from 'axios';
 import CollapseCheckBox from "../util/CollapseCheckBox";
 
 class Products extends Component {
@@ -17,16 +18,7 @@ class Products extends Component {
         {_id: 5, name: 'Sony Vio'},
         {_id: 6, name: 'HP'},
       ],
-      processors: [
-        {_id: 1, name: 'Intel Atom'},
-        {_id: 2, name: 'Intel Pentium Gold'},
-        {_id: 3, name: 'Core i3'},
-        {_id: 4, name: 'Core i5'},
-        {_id: 5, name: 'Core i7'},
-        {_id: 6, name: 'AMD A4'},
-        {_id: 7, name: 'AMD E1'},
-        {_id: 8, name: 'AMD A6'},
-      ]
+      processors: []
     }
   };
 
@@ -35,6 +27,17 @@ class Products extends Component {
     newFilters[category] = filters;
     this.setState({filters: newFilters});
   };
+
+  componentDidMount() {
+    axios.get('http://localhost:8000/api/processors')
+      .then(response => {
+        const processors = response.data;
+        this.setState({
+          products: {...this.state.products, processors}
+        });
+      })
+      .catch(err => console.log(err));
+  }
 
   render() {
     console.log(this.state.filters)
