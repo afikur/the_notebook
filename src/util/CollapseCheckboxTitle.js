@@ -11,7 +11,7 @@ const CollapseCheckboxTitle = ({open, title, toggleOpen}) => {
         height: '50px',
         borderBottom: '2px solid #2196f3',
         textTransform: 'uppercase',
-        padding: '0 15px',
+        padding: '',
         lineHeight: '50px',
         position: 'relative',
         cursor: 'pointer'
