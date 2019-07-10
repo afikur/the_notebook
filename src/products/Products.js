@@ -11,6 +11,7 @@ import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import Select from "@material-ui/core/Select/Select";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import IconButton from "@material-ui/core/IconButton/IconButton";
+import Button from "@material-ui/core/Button/Button";
 
 const styles = theme => ({
   root: {
@@ -20,6 +21,9 @@ const styles = theme => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 150,
+  },
+  button: {
+    margin: theme.spacing(1),
   },
   inputLabel: {
     // transform: 'translate(0, 8px) scale(1)'
@@ -37,15 +41,17 @@ class Products extends Component {
         brand: [],
         processor: []
       },
-      limit: '',
+      limit: 10,
+      skip: 0,
       brands: [],
       processors: [],
-      notebooks: []
+      notebooks: [],
+      size: 0
     }
   };
 
   handleFilters = async (filters, category) => {
-    const newFilters = {...this.state.filters};
+    const newFilters = {...this.state.products.filters};
     newFilters[category] = filters;
 
     const res = await axios.post('http://localhost:8000/api/notebooks/search', {
@@ -53,7 +59,6 @@ class Products extends Component {
       filters: newFilters
     });
     const {notebooks} = res.data;
-
     this.setState({
       products: {
         ...this.state.products,
@@ -78,13 +83,14 @@ class Products extends Component {
       limit: limit,
       filters: this.state.products.filters
     });
-    const {notebooks} = res.data;
-    console.log(this.state.products);
+    const {notebooks, size} = res.data;
+
     this.setState({
       products: {
         ...this.state.products,
         notebooks,
-        limit
+        limit,
+        size
       }
     })
   };
@@ -92,17 +98,42 @@ class Products extends Component {
   async componentDidMount() {
     const processorsPromise = axios.get('http://localhost:8000/api/processors');
     const brandsPromise = axios.get('http://localhost:8000/api/brands');
-    const notebooksPromise = axios.post('http://localhost:8000/api/notebooks/search');
+    const notebooksPromise = axios.post('http://localhost:8000/api/notebooks/search', {
+      limit: this.state.products.limit,
+      skip: this.state.products.skip,
+      filters: this.state.filter
+    });
     const [processorsResponse, brandsResponse, notebooksResponse] = await Promise.all([processorsPromise, brandsPromise, notebooksPromise]);
+
     this.setState({
       products: {
         ...this.state.products,
         brands: brandsResponse.data,
         processors: processorsResponse.data,
-        notebooks: notebooksResponse.data.notebooks
+        notebooks: notebooksResponse.data.notebooks,
+        size: notebooksResponse.data.size
       }
     });
   }
+
+  loadMoreProducts = async () => {
+    const skip = this.state.products.skip + this.state.products.limit;
+    const response = await axios.post('http://localhost:8000/api/notebooks/search', {
+      skip: skip,
+      limit: this.state.products.limit,
+      filters: this.state.products.filters
+    });
+    const notebooks = [...this.state.products.notebooks, ...response.data.notebooks];
+
+    this.setState({
+      products: {
+        ...this.state.products,
+        skip,
+        notebooks,
+        size: response.data.size
+      }
+    });
+  };
 
   render() {
     const {classes} = this.props;
@@ -176,13 +207,22 @@ class Products extends Component {
               />
             </IconButton>
             <div className="row">
-            {notebooks && notebooks.map(notebook => (
-              layout === 'grid' ?
-                <NotebookCard key={notebook._id} {...notebook} />
+              {notebooks && notebooks.map(notebook => (
+                layout === 'grid' ?
+                  <NotebookCard key={notebook._id} {...notebook} />
+                  :
+                  <NotebookListCard key={notebook._id} {...notebook} />
+                )
+              )}
+            </div>
+            <div className="row">
+              {this.state.products.size >= this.state.products.limit ?
+                <Button variant="contained" color="primary" className={classes.button} onClick={this.loadMoreProducts}>
+                  Load more
+                </Button>
                 :
-                <NotebookListCard key={notebook._id} {...notebook} />
-              )
-            )}
+                null
+              }
             </div>
           </div>
         </div>
