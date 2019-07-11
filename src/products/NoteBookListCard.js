@@ -28,8 +28,7 @@ function NotebookListCard({name, image, brand, price, description}) {
   const classes = useStyles();
 
   return (
-    <div className="col-lg-12">
-      <Card className={classes.card}>
+    <Card className={classes.card}>
       <CardMedia
         className={classes.cover}
         image={image[0]}
@@ -53,9 +52,7 @@ function NotebookListCard({name, image, brand, price, description}) {
         </CardContent>
 
       </div>
-
     </Card>
-    </div>
   );
 }
 

@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import axios from 'axios';
 import CollapseCheckBox from "../util/CollapseCheckBox";
-import NotebookCard from "./NotebookCard";
-import NotebookListCard from "./NoteBookListCard";
 import ViewList from '@material-ui/icons/ViewList';
 import {withStyles} from '@material-ui/core/styles';
 import ViewModule from '@material-ui/icons/ViewModule';
@@ -11,7 +9,7 @@ import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import Select from "@material-ui/core/Select/Select";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import IconButton from "@material-ui/core/IconButton/IconButton";
-import Button from "@material-ui/core/Button/Button";
+import Notebooks from "../Notebooks/Notebooks";
 
 const styles = theme => ({
   root: {
@@ -127,11 +125,11 @@ class Products extends Component {
   handleScrollEvent = () => {
     if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
     if(this.state.notebooks.length >= this.state.search.limit) {
-      this.loadMoreProducts();
+      this.loadMoreNotebooks();
     }
   };
 
-  loadMoreProducts = async () => {
+  loadMoreNotebooks = async () => {
     const {search} = this.state;
     const skip = search.skip + search.limit;
     const response = await axios.post('http://localhost:8000/api/notebooks/search', {...search, skip});
@@ -153,8 +151,7 @@ class Products extends Component {
     console.log(this.state.search)
     const {classes} = this.props;
     const {brands, processors, layout, search} = this.state;
-    const notebooks = this.state.notebooks.items;
-    const notebooksLength = this.state.notebooks.length;
+
     const {limit} = search;
 
     return (
@@ -222,24 +219,14 @@ class Products extends Component {
                 className={layout === 'list' ? classes.active : ''}
               />
             </IconButton>
-            <div className="row">
-              {notebooks && notebooks.map(notebook => (
-                layout === 'grid' ?
-                  <NotebookCard key={notebook._id} {...notebook} />
-                  :
-                  <NotebookListCard key={notebook._id} {...notebook} />
-                )
-              )}
-            </div>
-            <div className="row">
-              {notebooksLength >= limit ?
-                <Button variant="contained" color="primary" className={classes.button} onClick={this.loadMoreProducts}>
-                  Load more
-                </Button>
-                :
-                null
-              }
-            </div>
+
+            <Notebooks
+              notebooks={this.state.notebooks}
+              layout={layout}
+              limit={limit}
+              loadMore={this.loadMoreNotebooks}
+            />
+
           </div>
         </div>
       </div>
