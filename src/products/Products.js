@@ -4,12 +4,10 @@ import CollapseCheckBox from "../util/CollapseCheckBox";
 import ViewList from '@material-ui/icons/ViewList';
 import {withStyles} from '@material-ui/core/styles';
 import ViewModule from '@material-ui/icons/ViewModule';
-import FormControl from "@material-ui/core/FormControl/FormControl";
-import InputLabel from "@material-ui/core/InputLabel/InputLabel";
-import Select from "@material-ui/core/Select/Select";
-import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import Notebooks from "../Notebooks/Notebooks";
+import NotebooksPerPage from "../Notebooks/NotebooksPerPage";
+import SortNotebooksBy from "../Notebooks/SortNotebooksBy";
 
 const styles = theme => ({
   root: {
@@ -177,37 +175,13 @@ class Products extends Component {
             />
           </div>
           <div className="col-lg-8">
-            <FormControl className={classes.formControl}>
-              <InputLabel className={classes.inputLabel} htmlFor="sortBy">Sort</InputLabel>
-              <Select
-                value=''
-                inputProps={{
-                  name: 'sortBy',
-                  id: 'sortBy',
-                }}
-              >
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
 
-            <FormControl className={classes.formControl}>
-              <InputLabel className={classes.inputLabel} htmlFor="showItemsPerPage">Show per page</InputLabel>
-              <Select
-                value={search.limit}
-                onChange={this.handleNumberOfProductChange}
-                inputProps={{
-                  name: 'showItemsPerPage',
-                  id: 'showItemsPerPage',
-                }}
-              >
-                {[3,6,9,12].map(num =>
-                  <MenuItem key={num} value={num}>{num}</MenuItem>
-                )}
+            <SortNotebooksBy />
 
-              </Select>
-            </FormControl>
+            <NotebooksPerPage
+              onChange={this.handleNumberOfProductChange}
+              limit={limit}
+            />
 
             <IconButton onClick={() => this.setLayout('grid')}>
               <ViewModule
