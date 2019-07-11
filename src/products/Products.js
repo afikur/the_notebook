@@ -35,110 +35,127 @@ const styles = theme => ({
 
 class Products extends Component {
   state = {
-    products: {
-      layout: 'grid',
+    layout: 'grid',
+    search: {
       filters: {
         brand: [],
         processor: []
       },
-      limit: 10,
+      limit: 4,
       skip: 0,
-      brands: [],
-      processors: [],
-      notebooks: [],
-      size: 0
+    },
+    brands: [],
+    processors: [],
+    notebooks: {
+      items: [],
+      length: 0
     }
   };
 
   handleFilters = async (filters, category) => {
-    const newFilters = {...this.state.products.filters};
+    const {search} = this.state;
+
+    const newFilters = {...search.filters};
     newFilters[category] = filters;
 
     const res = await axios.post('http://localhost:8000/api/notebooks/search', {
-      limit: this.state.products.limit,
+      ...search,
       filters: newFilters
     });
-    const {notebooks} = res.data;
+
+    const {notebooks, size} = res.data;
     this.setState({
-      products: {
-        ...this.state.products,
+      search: {
+        ...search,
         filters: newFilters,
-        notebooks
+      },
+      notebooks: {
+        items: notebooks,
+        length: size
       }
     })
   };
 
   setLayout = (layout) => {
-    this.setState({
-      products: {
-        ...this.state.products,
-        layout
-      }
-    });
+    this.setState({layout});
   };
 
   handleNumberOfProductChange = async (event) => {
+    const {search} = this.state;
     const limit = event.target.value;
     const res = await axios.post('http://localhost:8000/api/notebooks/search', {
-      limit: limit,
-      filters: this.state.products.filters
+      ...search,
+      limit
     });
     const {notebooks, size} = res.data;
 
     this.setState({
-      products: {
-        ...this.state.products,
-        notebooks,
-        limit,
-        size
+      notebooks: {
+        items: notebooks,
+        length: size
+      },
+      search: {
+        ...this.state.search,
+        limit
       }
     })
   };
 
   async componentDidMount() {
+    const {search} = this.state;
     const processorsPromise = axios.get('http://localhost:8000/api/processors');
     const brandsPromise = axios.get('http://localhost:8000/api/brands');
-    const notebooksPromise = axios.post('http://localhost:8000/api/notebooks/search', {
-      limit: this.state.products.limit,
-      skip: this.state.products.skip,
-      filters: this.state.filter
-    });
+    const notebooksPromise = axios.post('http://localhost:8000/api/notebooks/search', {...search});
     const [processorsResponse, brandsResponse, notebooksResponse] = await Promise.all([processorsPromise, brandsPromise, notebooksPromise]);
 
     this.setState({
-      products: {
-        ...this.state.products,
-        brands: brandsResponse.data,
-        processors: processorsResponse.data,
-        notebooks: notebooksResponse.data.notebooks,
-        size: notebooksResponse.data.size
+      brands: brandsResponse.data,
+      processors: processorsResponse.data,
+      notebooks: {
+        items: notebooksResponse.data.notebooks,
+        length: notebooksResponse.data.size
       }
     });
+
+    window.addEventListener('scroll', this.handleScrollEvent);
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScrollEvent);
+  }
+
+  handleScrollEvent = () => {
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
+    if(this.state.notebooks.length >= this.state.search.limit) {
+      this.loadMoreProducts();
+    }
+  };
+
   loadMoreProducts = async () => {
-    const skip = this.state.products.skip + this.state.products.limit;
-    const response = await axios.post('http://localhost:8000/api/notebooks/search', {
-      skip: skip,
-      limit: this.state.products.limit,
-      filters: this.state.products.filters
-    });
-    const notebooks = [...this.state.products.notebooks, ...response.data.notebooks];
+    const {search} = this.state;
+    const skip = search.skip + search.limit;
+    const response = await axios.post('http://localhost:8000/api/notebooks/search', {...search, skip});
+    const notebooks = [...this.state.notebooks.items, ...response.data.notebooks];
 
     this.setState({
-      products: {
-        ...this.state.products,
-        skip,
-        notebooks,
-        size: response.data.size
+      notebooks: {
+        items: notebooks,
+        length: response.data.size
+      },
+      search: {
+        ...search,
+        skip
       }
     });
   };
 
   render() {
+    console.log(this.state.search)
     const {classes} = this.props;
-    const {products} = this.state;
-    const {notebooks, layout} = products;
+    const {brands, processors, layout, search} = this.state;
+    const notebooks = this.state.notebooks.items;
+    const notebooksLength = this.state.notebooks.length;
+    const {limit} = search;
 
     return (
       <div className="container">
@@ -147,7 +164,7 @@ class Products extends Component {
             <CollapseCheckBox
               open
               title="Brands"
-              list={products.brands}
+              list={brands}
               handleFilters={(filters) =>
                 this.handleFilters(filters, 'brand'
               )}
@@ -156,7 +173,7 @@ class Products extends Component {
             <CollapseCheckBox
               open
               title="Processor"
-              list={products.processors}
+              list={processors}
               handleFilters={(filters) =>
                 this.handleFilters(filters, 'processor'
               )}
@@ -181,29 +198,28 @@ class Products extends Component {
             <FormControl className={classes.formControl}>
               <InputLabel className={classes.inputLabel} htmlFor="showItemsPerPage">Show per page</InputLabel>
               <Select
-                value={this.state.products.limit}
+                value={search.limit}
                 onChange={this.handleNumberOfProductChange}
                 inputProps={{
                   name: 'showItemsPerPage',
                   id: 'showItemsPerPage',
                 }}
               >
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={20}>20</MenuItem>
-                <MenuItem value={30}>30</MenuItem>
-                <MenuItem value={40}>40</MenuItem>
-                <MenuItem value={50}>50</MenuItem>
+                {[3,6,9,12].map(num =>
+                  <MenuItem key={num} value={num}>{num}</MenuItem>
+                )}
+
               </Select>
             </FormControl>
 
             <IconButton onClick={() => this.setLayout('grid')}>
               <ViewModule
-                className={this.state.products.layout === 'grid' ? classes.active : ''}
+                className={layout === 'grid' ? classes.active : ''}
               />
             </IconButton>
             <IconButton onClick={() => this.setLayout('list')}>
               <ViewList
-                className={this.state.products.layout === 'list' ? classes.active : ''}
+                className={layout === 'list' ? classes.active : ''}
               />
             </IconButton>
             <div className="row">
@@ -216,7 +232,7 @@ class Products extends Component {
               )}
             </div>
             <div className="row">
-              {this.state.products.size >= this.state.products.limit ?
+              {notebooksLength >= limit ?
                 <Button variant="contained" color="primary" className={classes.button} onClick={this.loadMoreProducts}>
                   Load more
                 </Button>
