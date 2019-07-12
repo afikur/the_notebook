@@ -15,12 +15,12 @@ function Notebooks({notebooks, layout, limit, loadMore}) {
         :
         notebooks.items.map(notebook => (
           layout === 'grid' ?
-            <div className="col-lg-4">
-              <NotebookGridCard key={notebook._id} {...notebook} />
+            <div className="col-lg-4" key={notebook._id}>
+              <NotebookGridCard {...notebook} />
             </div>
             :
-            <div className="col-lg-12">
-              <NotebookListCard key={notebook._id} {...notebook} />
+            <div className="col-lg-12" key={notebook._id}>
+              <NotebookListCard {...notebook} />
             </div>
           ))
     )

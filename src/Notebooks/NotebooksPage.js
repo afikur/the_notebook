@@ -42,6 +42,7 @@ class NotebooksPage extends Component {
 
     const res = await axios.post('http://localhost:8000/api/notebooks/search', {
       ...search,
+      skip: 0,
       filters: newFilters
     });
 
