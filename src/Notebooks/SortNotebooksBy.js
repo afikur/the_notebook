@@ -13,21 +13,21 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-function SortNotebooksBy({onChange=f=>f}) {
+function SortNotebooksBy({sortBy, onChange=f=>f}) {
   const classes = useStyles();
   return (
     <Fragment>
       <span>Sort by</span>
       <FormControl className={classes.formControl}>
         <Select
-          value='price'
+          value={sortBy}
           onChange={e => onChange(e)}
           inputProps={{
             name: 'sortBy',
             id: 'sortBy',
           }}
         >
-          {['price', 'brand'].map(el =>
+          {['price', 'name'].map(el =>
             <MenuItem key={el} value={el}>{el}</MenuItem>
           )}
         </Select>

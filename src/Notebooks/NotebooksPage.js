@@ -18,6 +18,7 @@ class NotebooksPage extends Component {
           brand: [],
           processor: []
         },
+        sortBy: 'name',
         limit: 4,
         skip: 0,
       },
@@ -32,6 +33,7 @@ class NotebooksPage extends Component {
     this.setLayout = this.setLayout.bind(this);
     this.handleScrollEvent = this.handleScrollEvent.bind(this);
     this.loadMoreNotebooks = this.loadMoreNotebooks.bind(this);
+    this.handleNotebooksSorting = this.handleNotebooksSorting.bind(this);
   }
 
   async handleFilters(filters, category) {
@@ -129,6 +131,24 @@ class NotebooksPage extends Component {
     });
   };
 
+  async handleNotebooksSorting(event) {
+    const sortBy = event.target.value;
+    const {search} = this.state;
+    const response = await axios.post('http://localhost:8000/api/notebooks/search', {...search, skip: 0, sortBy});
+
+    this.setState({
+      notebooks: {
+        items: response.data.notebooks,
+        length: response.data.size
+      },
+      search: {
+        ...search,
+        skip: 0,
+        sortBy
+      }
+    });
+  }
+
   render() {
     const {layout, search} = this.state;
     const {limit} = search;
@@ -140,7 +160,10 @@ class NotebooksPage extends Component {
             <CollapsibleCheckboxes onCheck={this.handleFilters} />
           </div>
           <div className="col-lg-8">
-            <SortNotebooksBy />
+            <SortNotebooksBy
+              onChange={this.handleNotebooksSorting}
+              sortBy={search.sortBy}
+            />
             <NotebooksPerPage
               onChange={this.handleNumberOfProductChange}
               limit={limit}
