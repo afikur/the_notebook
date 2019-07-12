@@ -1,54 +1,38 @@
 import React, {Component} from 'react';
 import axios from 'axios';
-import CollapseCheckBox from "../util/CollapseCheckBox";
-import ViewList from '@material-ui/icons/ViewList';
-import {withStyles} from '@material-ui/core/styles';
-import ViewModule from '@material-ui/icons/ViewModule';
-import IconButton from "@material-ui/core/IconButton/IconButton";
-import Notebooks from "../Notebooks/Notebooks";
-import NotebooksPerPage from "../Notebooks/NotebooksPerPage";
-import SortNotebooksBy from "../Notebooks/SortNotebooksBy";
+import Notebooks from "./Notebooks";
+import NotebooksPerPage from "./NotebooksPerPage";
+import SortNotebooksBy from "./SortNotebooksBy";
+import CollapsibleCheckboxes from "./CollapsibleCheckboxes";
+import NotebooksLayout from "./NotebooksLayout";
 
-const styles = theme => ({
-  root: {
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 150,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  inputLabel: {
-    // transform: 'translate(0, 8px) scale(1)'
-  },
-  active: {
-    color: 'blue'
-  }
-});
+class NotebooksPage extends Component {
+  constructor(props) {
+    super(props);
 
-class Products extends Component {
-  state = {
-    layout: 'grid',
-    search: {
-      filters: {
-        brand: [],
-        processor: []
+    this.state = {
+      layout: 'grid',
+      search: {
+        filters: {
+          brand: [],
+          processor: []
+        },
+        limit: 4,
+        skip: 0,
       },
-      limit: 4,
-      skip: 0,
-    },
-    brands: [],
-    processors: [],
-    notebooks: {
-      items: [],
-      length: 0
-    }
-  };
+      notebooks: {
+        items: [],
+        length: 0
+      }
+    };
 
-  handleFilters = async (filters, category) => {
+    this.handleFilters = this.handleFilters.bind(this);
+    this.setLayout = this.setLayout.bind(this);
+    this.handleScrollEvent = this.handleScrollEvent.bind(this);
+    this.loadMoreNotebooks = this.loadMoreNotebooks.bind(this);
+  }
+
+  async handleFilters(filters, category) {
     const {search} = this.state;
 
     const newFilters = {...search.filters};
@@ -72,7 +56,7 @@ class Products extends Component {
     })
   };
 
-  setLayout = (layout) => {
+  setLayout(layout) {
     this.setState({layout});
   };
 
@@ -99,14 +83,9 @@ class Products extends Component {
 
   async componentDidMount() {
     const {search} = this.state;
-    const processorsPromise = axios.get('http://localhost:8000/api/processors');
-    const brandsPromise = axios.get('http://localhost:8000/api/brands');
-    const notebooksPromise = axios.post('http://localhost:8000/api/notebooks/search', {...search});
-    const [processorsResponse, brandsResponse, notebooksResponse] = await Promise.all([processorsPromise, brandsPromise, notebooksPromise]);
+    const notebooksResponse = await axios.post('http://localhost:8000/api/notebooks/search', {...search});
 
     this.setState({
-      brands: brandsResponse.data,
-      processors: processorsResponse.data,
       notebooks: {
         items: notebooksResponse.data.notebooks,
         length: notebooksResponse.data.size
@@ -120,14 +99,14 @@ class Products extends Component {
     window.removeEventListener('scroll', this.handleScrollEvent);
   }
 
-  handleScrollEvent = () => {
+  handleScrollEvent() {
     if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
     if(this.state.notebooks.length >= this.state.search.limit) {
       this.loadMoreNotebooks();
     }
   };
 
-  loadMoreNotebooks = async () => {
+  async loadMoreNotebooks() {
     const {search} = this.state;
     const skip = search.skip + search.limit;
     const response = await axios.post('http://localhost:8000/api/notebooks/search', {...search, skip});
@@ -146,53 +125,26 @@ class Products extends Component {
   };
 
   render() {
-    console.log(this.state.search)
-    const {classes} = this.props;
-    const {brands, processors, layout, search} = this.state;
-
+    const {layout, search} = this.state;
     const {limit} = search;
 
     return (
       <div className="container">
         <div className="row">
           <div className="col-lg-3 col-sm-6 col-xs-12">
-            <CollapseCheckBox
-              open
-              title="Brands"
-              list={brands}
-              handleFilters={(filters) =>
-                this.handleFilters(filters, 'brand'
-              )}
-            />
-
-            <CollapseCheckBox
-              open
-              title="Processor"
-              list={processors}
-              handleFilters={(filters) =>
-                this.handleFilters(filters, 'processor'
-              )}
-            />
+            <CollapsibleCheckboxes onCheck={this.handleFilters} />
           </div>
           <div className="col-lg-8">
-
             <SortNotebooksBy />
-
             <NotebooksPerPage
               onChange={this.handleNumberOfProductChange}
               limit={limit}
             />
 
-            <IconButton onClick={() => this.setLayout('grid')}>
-              <ViewModule
-                className={layout === 'grid' ? classes.active : ''}
-              />
-            </IconButton>
-            <IconButton onClick={() => this.setLayout('list')}>
-              <ViewList
-                className={layout === 'list' ? classes.active : ''}
-              />
-            </IconButton>
+            <NotebooksLayout
+              onSet={this.setLayout}
+              layout={layout}
+            />
 
             <Notebooks
               notebooks={this.state.notebooks}
@@ -200,7 +152,6 @@ class Products extends Component {
               limit={limit}
               loadMore={this.loadMoreNotebooks}
             />
-
           </div>
         </div>
       </div>
@@ -208,5 +159,4 @@ class Products extends Component {
   }
 }
 
-export default withStyles(styles)(Products);
-
+export default NotebooksPage;

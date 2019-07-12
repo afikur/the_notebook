@@ -35,7 +35,7 @@ class CollapseCheckBox extends Component {
     this.setState({
       checked: newChecked
     }, () => {
-      this.props.handleFilters(newChecked);
+      this.props.onCheck(newChecked);
     });
   };
 

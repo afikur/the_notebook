@@ -28,7 +28,7 @@ function SortNotebooksBy({onChange=f=>f}) {
           }}
         >
           {['price', 'brand'].map(el =>
-            <MenuItem value={el}>{el}</MenuItem>
+            <MenuItem key={el} value={el}>{el}</MenuItem>
           )}
         </Select>
       </FormControl>

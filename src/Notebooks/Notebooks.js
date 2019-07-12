@@ -1,6 +1,6 @@
 import React from 'react';
-import NotebookCard from "../products/NotebookCard";
-import NotebookListCard from "../products/NoteBookListCard";
+import NotebookCard from "./NotebookCard";
+import NotebookListCard from "./NoteBookListCard";
 import Button from "@material-ui/core/Button";
 
 function Notebooks({notebooks, layout, limit, loadMore}) {
