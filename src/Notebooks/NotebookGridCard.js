@@ -14,7 +14,7 @@ const useStyles = makeStyles({
   },
 });
 
-function NotebookCard({name, image, description, brand, price}) {
+function NotebookGridCard({name, image, description, brand, price}) {
   const classes = useStyles();
 
   return (
@@ -46,4 +46,4 @@ function NotebookCard({name, image, description, brand, price}) {
   );
 }
 
-export default NotebookCard;
+export default NotebookGridCard;

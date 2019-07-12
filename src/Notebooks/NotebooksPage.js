@@ -5,6 +5,7 @@ import NotebooksPerPage from "./NotebooksPerPage";
 import SortNotebooksBy from "./SortNotebooksBy";
 import CollapsibleCheckboxes from "./CollapsibleCheckboxes";
 import NotebooksLayout from "./NotebooksLayout";
+import LinearProgress from "@material-ui/core/LinearProgress/LinearProgress";
 
 class NotebooksPage extends Component {
   constructor(props) {
@@ -23,7 +24,8 @@ class NotebooksPage extends Component {
       notebooks: {
         items: [],
         length: 0
-      }
+      },
+      loading: false
     };
 
     this.handleFilters = this.handleFilters.bind(this);
@@ -83,9 +85,11 @@ class NotebooksPage extends Component {
 
   async componentDidMount() {
     const {search} = this.state;
+    this.setState({loading: true});
     const notebooksResponse = await axios.post('http://localhost:8000/api/notebooks/search', {...search});
 
     this.setState({
+      loading: false,
       notebooks: {
         items: notebooksResponse.data.notebooks,
         length: notebooksResponse.data.size
@@ -145,13 +149,16 @@ class NotebooksPage extends Component {
               onSet={this.setLayout}
               layout={layout}
             />
-
-            <Notebooks
-              notebooks={this.state.notebooks}
-              layout={layout}
-              limit={limit}
-              loadMore={this.loadMoreNotebooks}
-            />
+            {this.state.loading ?
+              <LinearProgress />
+              :
+              <Notebooks
+                notebooks={this.state.notebooks}
+                layout={layout}
+                limit={limit}
+                loadMore={this.loadMoreNotebooks}
+              />
+            }
           </div>
         </div>
       </div>
