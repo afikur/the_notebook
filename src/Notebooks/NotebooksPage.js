@@ -6,6 +6,9 @@ import SortNotebooksBy from "./SortNotebooksBy";
 import CollapsibleCheckboxes from "./CollapsibleCheckboxes";
 import NotebooksLayout from "./NotebooksLayout";
 import LinearProgress from "@material-ui/core/LinearProgress/LinearProgress";
+import IconButton from "@material-ui/core/IconButton";
+import ArrowDownward from '@material-ui/icons/ArrowDownward';
+import ArrowUpward from '@material-ui/icons/ArrowUpward';
 
 class NotebooksPage extends Component {
   constructor(props) {
@@ -21,6 +24,7 @@ class NotebooksPage extends Component {
         sortBy: 'name',
         limit: 4,
         skip: 0,
+        order: 'asc'
       },
       notebooks: {
         items: [],
@@ -34,6 +38,7 @@ class NotebooksPage extends Component {
     this.handleScrollEvent = this.handleScrollEvent.bind(this);
     this.loadMoreNotebooks = this.loadMoreNotebooks.bind(this);
     this.handleNotebooksSorting = this.handleNotebooksSorting.bind(this);
+    this.toggleOrder = this.toggleOrder.bind(this);
   }
 
   async handleFilters(filters, category) {
@@ -53,6 +58,7 @@ class NotebooksPage extends Component {
       search: {
         ...search,
         filters: newFilters,
+        skip: 0
       },
       notebooks: {
         items: notebooks,
@@ -113,6 +119,25 @@ class NotebooksPage extends Component {
     }
   };
 
+  async toggleOrder() {
+    const {search} = this.state;
+    const order = this.state.search.order === 'asc' ? 'desc' : 'asc';
+
+    const response = await axios.post('http://localhost:8000/api/notebooks/search', {...search, skip: 0, order});
+
+    this.setState({
+      notebooks: {
+        items: response.data.notebooks,
+        length: response.data.size
+      },
+      search: {
+        ...this.state.search,
+        skip: 0,
+        order
+      }
+    });
+  }
+
   async loadMoreNotebooks() {
     const {search} = this.state;
     const skip = search.skip + search.limit;
@@ -164,6 +189,14 @@ class NotebooksPage extends Component {
               onChange={this.handleNotebooksSorting}
               sortBy={search.sortBy}
             />
+
+            <IconButton onClick={this.toggleOrder}>
+              {search.order === 'asc' ?
+                <ArrowDownward/> :
+                <ArrowUpward />
+              }
+            </IconButton>
+
             <NotebooksPerPage
               onChange={this.handleNumberOfProductChange}
               limit={limit}
